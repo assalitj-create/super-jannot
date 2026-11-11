@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#fff8ef">
+<title>Super Jannot</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icone-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  html,body{margin:0;height:100%;background:#fff8ef;font-family:Nunito,Arial,sans-serif;color:#2a2f45}
+  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;background:#fff8ef}
+  .accueil{display:none;max-width:360px;margin:0 auto;padding:60px 24px;text-align:center}
+  .accueil img{width:96px;height:96px;border-radius:22px}
+  .accueil h1{font-size:24px;color:#1fb5d0;margin:14px 0 6px}
+  .accueil p{font-size:14px;color:#6b6578;line-height:1.5}
+  .accueil input{width:100%;box-sizing:border-box;font-size:16px;padding:12px;border:1px solid #f0e4d4;border-radius:12px;margin:10px 0}
+  .accueil button{width:100%;font-size:16px;font-weight:700;padding:12px;border:0;border-radius:12px;background:#e8641e;color:#fff}
+</style>
+</head>
+<body>
+<div class="accueil" id="accueil">
+  <img src="icone-192.png" alt="">
+  <h1>Super Jannot</h1>
+  <p>Première ouverture sur cet appareil : colle ton adresse Super Jannot complète (celle qui finit par <b>?cle=…</b>). Elle reste enregistrée sur ce téléphone uniquement.</p>
+  <input id="adresse" type="url" placeholder="https://script.google.com/macros/s/…/exec?cle=…" autocomplete="off">
+  <button id="ok">Ouvrir Super Jannot</button>
+</div>
+<script>
+  // Coque de Super Jannot : affiche en plein écran l'application Google Apps Script.
+  // Aucune clé ni donnée ici : l'adresse avec la clé est gardée seulement dans ce navigateur.
+  var CLE_STOCK = 'super-jannot-adresse';
+  function lire() { try { return localStorage.getItem(CLE_STOCK) || ''; } catch (e) { return ''; } }
+  function garder(a) { try { localStorage.setItem(CLE_STOCK, a); } catch (e) { } }
+  function valide(a) { return /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec\?cle=.+/.test(a); }
+  function ouvrir(a) {
+    var f = document.createElement('iframe');
+    f.src = a; f.title = 'Super Jannot';
+    f.allow = 'clipboard-read; clipboard-write; fullscreen';
+    document.body.appendChild(f);
+  }
+  // Adresse transmise une fois après le # (jamais envoyée à GitHub) : …/super-jannot/#https://script.google.com/…
+  var h = decodeURIComponent(location.hash.slice(1));
+  if (valide(h)) { garder(h); history.replaceState(null, '', location.pathname); }
+  var adresse = lire();
+  if (valide(adresse)) ouvrir(adresse);
+  else {
+    document.getElementById('accueil').style.display = 'block';
+    document.getElementById('ok').onclick = function () {
+      var a = document.getElementById('adresse').value.trim();
+      if (!valide(a)) { alert("Cette adresse ne ressemble pas à l'adresse Super Jannot (…/exec?cle=…)."); return; }
+      garder(a); document.getElementById('accueil').style.display = 'none'; ouvrir(a);
+    };
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () { });
+</script>
+</body>
+</html>
